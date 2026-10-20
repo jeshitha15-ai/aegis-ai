@@ -10,7 +10,17 @@ async def lifespan(app: FastAPI):
     init_db()
     yield
 app = FastAPI(title="Aegis AI API", version="0.1.0", lifespan=lifespan)
-app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173","http://127.0.0.1:5173"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_origin_regex=r"https://[a-zA-Z0-9-]+-(5173|5174)\.app\.github\.dev",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 @app.get("/api/health")
 def health(): return {"status":"ok","service":"aegis-ai-api"}
 @app.post("/api/investigate")
@@ -20,7 +30,13 @@ def investigate(req: InvestigationRequest):
         result["id"] = save(req.description,result)
         return result
     except RuntimeError as e: raise HTTPException(status_code=503,detail=str(e))
-    except Exception as e: raise HTTPException(status_code=500,detail="Investigation failed. Check backend terminal logs.") from e
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail="Investigation failed. Check backend terminal logs."
+        )
 @app.get("/api/investigations")
 def history(): return list_all()
 @app.get("/api/investigations/{investigation_id}")
