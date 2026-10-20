@@ -1,0 +1,9 @@
+
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://aegis-ai-mzng.onrender.com/api/:path*"
+    }
+  ]
+}
